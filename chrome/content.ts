@@ -1,7 +1,9 @@
-// @ts-ignore
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+declare var chrome: any;
+chrome.runtime.onMessage.addListener((request: { action: string}, _sender: unknown, sendResponse: (str: string) => void) => {
     console.log("request.action: ", request.action)
-    if (request.action === "getDocumentTextContent") {
-        sendResponse(document.body.innerText);
+    switch(request.action) {
+        case "getDocumentTextContent":
+            sendResponse(document.body.innerText);
+            break;
     }
 });

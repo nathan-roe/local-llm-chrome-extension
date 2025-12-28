@@ -1,4 +1,3 @@
-
 import {type FC, StrictMode, useEffect, useState} from 'react';
 import {type Container, createRoot} from 'react-dom/client';
 import {
@@ -15,6 +14,8 @@ import {
 import {Edit as EditIcon, Visibility as ViewIcon, Save as SaveIcon} from '@mui/icons-material';
 import DOMPurify from "dompurify";
 import {marked} from "marked";
+
+declare var chrome: any;
 
 const container = document.getElementById('options');
 const options = createRoot(container as Container);
@@ -34,8 +35,7 @@ const Options: FC = () => {
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
-        // @ts-ignore
-        chrome.storage.local.get(['prompt-context', 'model-name', 'port'], (result) => {
+        chrome.storage.local.get(['prompt-context', 'model-name', 'port'], (result: Record<string, any>) => {
             if (result['prompt-context']) setUserText(result['prompt-context']);
             if (result['model-name']) setModelName(result['model-name']);
             if (result['port']) setPort(result['port']);
@@ -148,10 +148,9 @@ const Options: FC = () => {
                         {isEditing && (
                             <Button
                                 variant="contained"
-                                startIcon={<SaveIcon/>}
+                                startIcon={<SaveIcon sx={{color: 'white'}}/>}
                                 onClick={() => {
                                     setIsEditing(false);
-                                    // @ts-ignore
                                     chrome.storage.local.set({
                                         'prompt-context': userText,
                                         'model-name': modelName,
@@ -159,19 +158,18 @@ const Options: FC = () => {
                                     });
                                 }}
                                 size="large"
-                                sx={{borderRadius: 2, px: 4}}
+                                sx={{borderRadius: 2, px: 4, color: 'white'}}
                             >
                                 Save Changes
                             </Button>
                         )}
                     </Box>
+                    <Box gap={2} textAlign="center">
+                        <Typography variant="caption" color="text.disabled">
+                            Settings are stored locally in your browser.
+                        </Typography>
+                    </Box>
                 </Paper>
-
-                <Box mt={4} textAlign="center">
-                    <Typography variant="caption" color="text.disabled">
-                        Settings are stored locally in your browser.
-                    </Typography>
-                </Box>
             </MuiContainer>
         </Box>
     );

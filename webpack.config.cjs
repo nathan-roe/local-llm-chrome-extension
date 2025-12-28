@@ -6,7 +6,7 @@ module.exports = {
     // Use 'development' or 'production' mode
     mode: 'development',
     entry: {
-        popup: './react/popup.tsx',
+        popup: './react/response.tsx',
         options: './react/options.tsx',
         background: './chrome/background.ts',
         content: './chrome/content.ts'
@@ -17,14 +17,14 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './html/popup.html',
-            filename: 'popup.html',
-            chunks: ['popup'], // Only include the 'popup' bundle in popup.html
+            template: './html/response.html',
+            filename: 'response.html',
+            chunks: ['popup'], // Only include the 'popup' bundle in response.html
         }),
         new HtmlWebpackPlugin({
             template: './html/options.html',
             filename: 'options.html',
-            chunks: ['options'], // Only include the 'options' bundle in popup.html
+            chunks: ['options'], // Only include the 'options' bundle in response.html
         }),
         new CopyPlugin({
             patterns: [

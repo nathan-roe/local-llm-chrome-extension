@@ -19,9 +19,10 @@ A Chrome extension that integrates browsers with locally hosted Large Language M
 
 ## Prerequisites
 
--   [Node.js](https://nodejs.org/) (latest LTS recommended)
--   A local LLM runner (e.g., **Ollama**) running on your machine.
--   A Chromium-based browser (Chrome, Edge, Brave, etc.)
+- [Node.js](https://nodejs.org/) (latest LTS recommended)
+- A Chromium-based browser (Chrome, Edge, Brave, etc.)
+- A local LLM runner (e.g., **Ollama**) running on your machine.
+  - CORS must be configured to allow requests from the extension, e.g., `OLLAMA_ORIGINS='chrome://extensions/*' ollama serve`
 
 ## Installation & Setup
 

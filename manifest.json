@@ -1,0 +1,36 @@
+{
+  "name": "Local Text Generation for Chrome",
+  "description": "Generate text based on selected page content and your locally running LLM.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.bundle.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.bundle.js"]
+    }
+  ],
+  "permissions": ["storage", "activeTab", "scripting", "contextMenus", "http://localhost:*", "https://localhost:*"],
+  "host_permissions": [
+    "http://localhost:*",
+    "https://localhost:*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/assets/textsection.png",
+      "32": "/assets/textsection.png",
+      "48": "/assets/textsection.png",
+      "128": "/assets/textsection.png"
+    }
+  },
+  "icons": {
+    "16": "/assets/textsection.png",
+    "32": "/assets/textsection.png",
+    "48": "/assets/textsection.png",
+    "128": "/assets/textsection.png"
+  },
+  "options_page": "options.html"
+}

@@ -8,6 +8,17 @@ enum ContextMenuAction {
 
 const SUMMARY_AGENT_HEADER = `You are a text summarization tool designed to condense large volumes of text into concise, informative summaries.
   Your goal is to efficiently extract key information, main ideas, and critical details, allowing users to quickly understand the core content of the text without needing to read the entire document.`;
+const LLM_RULES = `
+[Rules]
+- The response MUST be formatted as markdown.
+- If a user references a diagram or visual representation of data, generate a mermaid.js formatted diagram as part of the response. The generated mermaid.js content MUST be wrapped in \`\`\`mermaid\`\`\` . Here is an example:
+\`\`\`mermaid
+        graph TD
+        A[Client] --> B[Load Balancer]
+        B --> C[Server1]
+        B --> D[Server2]
+\`\`\`
+`;
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -41,15 +52,15 @@ const parseModelResponse = (response: string)  => {
   }
 }
 
-const definePrompt = async (prompt: string, context: string, action: ContextMenuAction, tabId: number) => {
+const definePrompt = async (context: string, prompt: string, action: ContextMenuAction, tabId: number) => {
   switch(action) {
     case ContextMenuAction.GENERATE_LLM_RESPONSE_NO_CONTEXT_ACTION:
-      return prompt;
+      return context;
     case ContextMenuAction.GENERATE_LLM_RESPONSE_WITH_CONTEXT_ACTION:
-      return `[Context]:\n${context}\n[Prompt]:\n${prompt}`;
+      return `${LLM_RULES}[Prompt]:\n${prompt}\n[Context]:\n${context}`;
     case ContextMenuAction.GENERATE_LLM_RESPONSE_FROM_DOM:
       const response = await chrome.tabs.sendMessage(tabId, { action: "getDocumentTextContent" });
-      return `[Context]:\n${context ?? SUMMARY_AGENT_HEADER}\n[Prompt]:\n${response ?? prompt}`;
+      return `${LLM_RULES}[Prompt]:\n${prompt ?? SUMMARY_AGENT_HEADER}\n[Context]:\n${response ?? context}`;
   }
 }
 const consumeStreamAsync = async (response: Response) => {
@@ -80,7 +91,7 @@ chrome.contextMenus.onClicked.addListener((info: any, tab: any) => {
       });
       chrome.storage.local.get(['prompt-context', 'model-name', 'port'], async (result: Record<string, string>) => {
         const prompt = await definePrompt(info.selectionText, result['prompt-context'] ?? '', info.menuItemId, tab.id);
-        chrome.storage.local.set({'prompt': info.menuItemId !== ContextMenuAction.GENERATE_LLM_RESPONSE_FROM_DOM ? info.selectionText : 'Review the content of the current page'});
+        chrome.storage.local.set({'prompt': result['prompt-context'] ?? SUMMARY_AGENT_HEADER});
         console.log("request: ", `http://localhost:${result['port'] ?? '11434'}/api/generate`, { method: 'POST', body: JSON.stringify({
             "model": result['model-name'] ?? "llama3",
             "prompt": prompt,

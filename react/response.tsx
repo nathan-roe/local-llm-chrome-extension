@@ -1,18 +1,36 @@
-import {type FC, StrictMode, useCallback, useEffect, useState} from 'react';
+import {type FC, StrictMode, useCallback, useEffect, useMemo, useState} from 'react';
 import {type Container, createRoot} from 'react-dom/client';
 import {Box, CircularProgress, Divider, Paper, Typography} from "@mui/material";
-import {marked} from "marked";
+import {marked, type RendererObject} from "marked";
 import DOMPurify from 'dompurify';
+import mermaid from "mermaid";
 
 declare var chrome: any;
 const container = document.getElementById('response');
 const response = createRoot(container as Container);
+const renderer: Partial<RendererObject> = {
+    code({ text, lang }: { text: string; lang?: string }) {
+        switch(lang) {
+            case 'mermaid':
+                return `<pre class="mermaid">${text}</pre>`;
+            case 'loading':
+                return `<CircularProgress size={10} />`;
+            default:
+                return `<pre><code class="language-${lang}">${text}</code></pre>`;
+        }
+    }
+};
+
+// Apply the custom renderer
+marked.use({ renderer });
+mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
 const Popup: FC = () => {
     const [loading, setLoading] = useState(false);
     const [modelResponse, setModelResponse] = useState("Thinking...");
     const [prompt, setPrompt] = useState("");
     const [promptError, setPromptError] = useState(false);
+    const [chartLoaded, setChartLoaded] = useState(false);
 
     const updatePromptState = useCallback(() => {
         chrome.storage.local.get(['prompt', 'prompt-error'], (res: Record<string, any>) => {
@@ -24,10 +42,26 @@ const Popup: FC = () => {
         });
     }, [])
 
+    const formatModelResponse = useCallback((response: string) => {
+        console.log("changes['llm-response'].newValue: ", response, marked.parse(response));
+        if(response.includes('```mermaid')) {
+            const sanitizedResponse = response.replace(/```mermaid(?![\s\S]*```)[\s\S]*/, '```loading```');
+            if(sanitizedResponse !== response) {
+                response = sanitizedResponse;
+            }
+        }
+        return DOMPurify.sanitize(marked.parse(response) as string);
+    }, []);
+
     chrome.storage.onChanged.addListener((changes: Record<string, {newValue: string}>) => {
         if('llm-response' in changes) {
             setLoading(false);
-            setModelResponse(changes['llm-response'].newValue ?? '');
+            const formattedResponse = formatModelResponse(changes['llm-response'].newValue ?? '');
+            setModelResponse(formattedResponse);
+            if(formattedResponse.includes('```mermaid') && !chartLoaded) {
+                mermaid.run({ querySelector: '.mermaid'}).catch(console.error);
+                setChartLoaded(true);
+            }
         }
         updatePromptState();
     });
@@ -61,7 +95,7 @@ const Popup: FC = () => {
                 </Box>
                 <Divider sx={{ mb: 2 }} />
                 {promptError ? 'Failed to generate response. Please try again.' : (
-                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(modelResponse) as string) }} />
+                    <div dangerouslySetInnerHTML={{ __html: modelResponse }} />
                 )}
             </Paper>
         </Box>

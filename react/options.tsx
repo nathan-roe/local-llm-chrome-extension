@@ -14,8 +14,8 @@ import {
 import {Edit as EditIcon, Visibility as ViewIcon, Save as SaveIcon} from '@mui/icons-material';
 import DOMPurify from "dompurify";
 import {marked} from "marked";
+import '../styles.css';
 
-declare var chrome: any;
 
 const container = document.getElementById('options');
 const options = createRoot(container as Container);

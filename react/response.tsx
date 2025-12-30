@@ -4,8 +4,8 @@ import {Box, CircularProgress, Divider, Paper, Typography} from "@mui/material";
 import {marked, type RendererObject} from "marked";
 import DOMPurify from 'dompurify';
 import mermaid from "mermaid";
+import '../styles.css';
 
-declare var chrome: any;
 const container = document.getElementById('response');
 const response = createRoot(container as Container);
 const renderer: Partial<RendererObject> = {
@@ -13,8 +13,6 @@ const renderer: Partial<RendererObject> = {
         switch(lang) {
             case 'mermaid':
                 return `<pre class="mermaid">${text}</pre>`;
-            case 'loading':
-                return `<CircularProgress size={10} />`;
             default:
                 return `<pre><code class="language-${lang}">${text}</code></pre>`;
         }
@@ -44,24 +42,26 @@ const Popup: FC = () => {
 
     const formatModelResponse = useCallback((response: string) => {
         console.log("changes['llm-response'].newValue: ", response, marked.parse(response));
-        if(response.includes('```mermaid')) {
-            const sanitizedResponse = response.replace(/```mermaid(?![\s\S]*```)[\s\S]*/, '```loading```');
-            if(sanitizedResponse !== response) {
-                response = sanitizedResponse;
-            }
+
+        // Check if there is an unfinished mermaid block
+        const isMermaidInProgress = response.includes('```mermaid') && !response.match(/```mermaid[\s\S]*```/);
+
+        let processedResponse = response;
+        if (isMermaidInProgress) {
+            // Replace the unfinished block with a placeholder for the loading indicator
+            processedResponse = response.replace(/```mermaid[\s\S]*$/, '<div class="mermaid-loading"></div>');
         }
-        return DOMPurify.sanitize(marked.parse(response) as string);
+
+        return DOMPurify.sanitize(marked.parse(processedResponse) as string);
     }, []);
 
     chrome.storage.onChanged.addListener((changes: Record<string, {newValue: string}>) => {
         if('llm-response' in changes) {
             setLoading(false);
-            const formattedResponse = formatModelResponse(changes['llm-response'].newValue ?? '');
+            const rawValue = changes['llm-response'].newValue ?? '';
+            const formattedResponse = formatModelResponse(rawValue);
+            console.log("formattedResponse: ", formattedResponse)
             setModelResponse(formattedResponse);
-            if(formattedResponse.includes('```mermaid') && !chartLoaded) {
-                mermaid.run({ querySelector: '.mermaid'}).catch(console.error);
-                setChartLoaded(true);
-            }
         }
         updatePromptState();
     });
@@ -70,6 +70,18 @@ const Popup: FC = () => {
         updatePromptState();
         setLoading(true);
     }, [updatePromptState]);
+
+    useEffect(() => {
+        // Only trigger mermaid if the block is complete (has closing backticks)
+        const isMermaidComplete = modelResponse.includes('class="mermaid"');
+        console.log("Model response changed: ", modelResponse);
+        if (isMermaidComplete) {
+            console.log("Running mermaid: ", chartLoaded)
+            mermaid.run({ querySelector: '.mermaid'}).then(() => {
+                setChartLoaded(true);
+            }).catch(console.error);
+        }
+    }, [modelResponse]);
 
     return (
         <Box sx={{ p: 2, minWidth: 400, backgroundColor: '#f5f7f9', minHeight: '100vh', boxSizing: 'border-box'}}>

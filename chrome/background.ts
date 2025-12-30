@@ -1,8 +1,5 @@
-declare var chrome: any;
-
 enum ContextMenuAction {
   GENERATE_LLM_RESPONSE_WITH_CONTEXT_ACTION = "generate-llm-response",
-  GENERATE_LLM_RESPONSE_NO_CONTEXT_ACTION = "generate-llm-response-no-context",
   GENERATE_LLM_RESPONSE_FROM_DOM = "generate-llm-response-dom",
 }
 
@@ -10,8 +7,12 @@ const SUMMARY_AGENT_HEADER = `You are a text summarization tool designed to cond
   Your goal is to efficiently extract key information, main ideas, and critical details, allowing users to quickly understand the core content of the text without needing to read the entire document.`;
 const LLM_RULES = `
 [Rules]
-- The response MUST be formatted as markdown.
-- If a user references a diagram or visual representation of data, generate a mermaid.js formatted diagram as part of the response. The generated mermaid.js content MUST be wrapped in \`\`\`mermaid\`\`\` . Here is an example:
+* The response MUST be formatted as markdown.
+* If a user references a diagram or visual representation of data, generate a mermaid.js formatted diagram as part of the response.
+  * The generated mermaid.js content MUST be a code block labeled with "mermaid", e.g. \`\`\`mermaid\`\`\`.
+  * The response output should NOT mention the chart uses mermaid.js.
+  * For text within the diagram, do NOT use 'A[LABEL="Some Value"]' syntax. Labels should be added directly, without quotes, e.g. 'A[Some Value]'.
+  * The following shows a valid mermaid code block for use as a diagram:
 \`\`\`mermaid
         graph TD
         A[Client] --> B[Load Balancer]
@@ -23,17 +24,12 @@ const LLM_RULES = `
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: ContextMenuAction.GENERATE_LLM_RESPONSE_WITH_CONTEXT_ACTION,
-    title: "Include context and generate response for selected text",
+    title: "Generate response for selected content",
     contexts: ["selection"] // Only show when text is highlighted
   });
   chrome.contextMenus.create({
-    id: ContextMenuAction.GENERATE_LLM_RESPONSE_NO_CONTEXT_ACTION,
-    title: 'Generate response for selected text',
-    contexts: ['selection'] // Only show when text is highlighted
-  });
-  chrome.contextMenus.create({
     id: ContextMenuAction.GENERATE_LLM_RESPONSE_FROM_DOM,
-    title: 'Generate response for DOM content',
+    title: 'Generate response for all page content',
     contexts: ['all']
   });
 });
@@ -54,8 +50,6 @@ const parseModelResponse = (response: string)  => {
 
 const definePrompt = async (context: string, prompt: string, action: ContextMenuAction, tabId: number) => {
   switch(action) {
-    case ContextMenuAction.GENERATE_LLM_RESPONSE_NO_CONTEXT_ACTION:
-      return context;
     case ContextMenuAction.GENERATE_LLM_RESPONSE_WITH_CONTEXT_ACTION:
       return `${LLM_RULES}[Prompt]:\n${prompt}\n[Context]:\n${context}`;
     case ContextMenuAction.GENERATE_LLM_RESPONSE_FROM_DOM:

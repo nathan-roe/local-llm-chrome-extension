@@ -1,5 +1,11 @@
+html {
+    margin: 0;
+    padding: 0;
+}
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
@@ -34,4 +40,26 @@ h2 {
 
 #submit-btn:hover {
     background-color: #3e8e41;
+}
+
+.mermaid-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(25, 118, 210, 0.2);
+    border-radius: 50%;
+    border-top-color: #1976d2;
+    animation: spin 1s ease-in-out infinite;
+    margin: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.mermaid {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    min-height: 50px;
 }

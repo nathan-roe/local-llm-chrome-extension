@@ -12,19 +12,19 @@ module.exports = {
         content: './chrome/content.ts'
     },
     output: {
-        path: path.resolve(__dirname, 'dist'), // Output to a 'dist' folder
-        filename: '[name].bundle.js', // Bundled file names (e.g., popup.bundle.js)
+        path: path.resolve(__dirname, 'dist'),
+        filename: '[name].bundle.js',
     },
     plugins: [
         new HtmlWebpackPlugin({
             template: './html/response.html',
             filename: 'response.html',
-            chunks: ['popup'], // Only include the 'popup' bundle in response.html
+            chunks: ['popup'],
         }),
         new HtmlWebpackPlugin({
             template: './html/options.html',
             filename: 'options.html',
-            chunks: ['options'], // Only include the 'options' bundle in response.html
+            chunks: ['options'],
         }),
         new CopyPlugin({
             patterns: [
@@ -37,14 +37,18 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?$/, // Matches .ts and .tsx files
+                test: /\.tsx?$/,
                 use: 'ts-loader',
-                exclude: /node_modules/, // Exclude node_modules for faster builds
+                exclude: /node_modules/,
             },
+            {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader'],
+            }
         ],
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'], // Allows importing files without specifying extension
+        extensions: ['.tsx', '.ts', '.js', '.css'],
     },
     devtool: 'inline-source-map'
 };

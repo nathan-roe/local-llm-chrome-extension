@@ -2,12 +2,14 @@
 
 A Chrome extension that integrates browsers with locally hosted Large Language Models (LLMs). This extension leverages the context of the webpage you're currently viewing to power AI-driven insights, summaries, or custom prompts, while keeping data local.
 
+![overview.png](assets/overview.png)
+
 ## Features
 
 -   **Page Context Extraction**: Automatically extracts the text content of the active tab to provide context to your LLM.
 -   **Local LLM Integration**: Connects to local services (like [Ollama](https://ollama.com/)) via customizable ports and model names.
 -   **Customizable Prompts**: Define a global system prompt to tailor how the AI interacts with data.
--   **Rich Preview**: Supports Markdown rendering with `marked` and `DOMPurify` for a clean, safe preview of custom instructions.
+-   **Rich Preview**: Supports Markdown and diagram rendering with `marked`, `mermaid.js` and `DOMPurify` for a clean, safe preview of custom instructions.
 -   **Privacy Focused**: Settings and page data stay local. No external API keys are required for the connection to a local instance.
 
 ## Tech Stack
